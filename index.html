@@ -18,10 +18,16 @@
 
       const playerRadius = 20;
       let playerAngle = 0;
-      let lastAttack = Date.now();
+      let lastAttackTime = Date.now();
       const attackCooldown = 200;
       const gameStartTimestamp = Date.now();
       let slashGen = slashGenerator(gameStartTimestamp);
+
+      let spawnedCount = 0;
+      const enemyCooldown = 1000;
+      const enemyCount = 50;
+      const enemyGen = enemyPositionGenerator(enemyCount);
+      let lastEnemySpawnTime = Date.now()
 
       setupEventListeners();
 
@@ -31,9 +37,10 @@
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         drawWorldLines();
         drawMouse();
-        playerAngle = calculatePlayerAngle(canvas.width / 2, canvas.height / 2, mouseX, mouseY);
+        playerAngle = calculatePlayerAngle();
         drawPlayer(playerAngle);
         handlePlayerAttacks();
+        handleSpawnEnemies();
 
         setTimeout(main, 1000 / fps);
       }
@@ -45,9 +52,9 @@
         });
 
         window.addEventListener("click", (e) => {
-          if (Date.now() - gameStartTimestamp > attackCooldown && Date.now() - lastAttack > attackCooldown) {
-            lastAttack = Date.now();
-            console.log("attack", lastAttack);
+          if (Date.now() - gameStartTimestamp > attackCooldown && Date.now() - lastAttackTime > attackCooldown) {
+            lastAttackTime = Date.now();
+            console.log("attack", lastAttackTime);
           }
         });
       }
@@ -116,7 +123,7 @@
       function handlePlayerAttacks() {
         // ongoing attack
         const isAttacking =
-          Date.now() - gameStartTimestamp > attackCooldown && Date.now() - lastAttack < attackCooldown;
+          Date.now() - gameStartTimestamp > attackCooldown && Date.now() - lastAttackTime < attackCooldown;
         if (isAttacking) {
           drawSlash();
         } else {
@@ -126,7 +133,9 @@
 
       function* slashGenerator(slashTimestamp, angle) {
         const slashOverflow = 0.2;
-        while (Date.now() - slashTimestamp <= attackCooldown) {
+        const slashIsOngoing = Date.now() - slashTimestamp <= attackCooldown;
+
+        while (slashIsOngoing) {
           percentage = slashOverflow + (Date.now() - slashTimestamp) / attackCooldown;
           yield [percentage, angle];
         }
@@ -149,6 +158,30 @@
         ctx.closePath();
 
         ctx.lineWidth = 1;
+      }
+
+      function handleSpawnEnemies() {
+        const isTimeToSpawn = Date.now() - lastEnemySpawnTime > enemyCooldown
+
+        if (isTimeToSpawn) {
+          lastEnemySpawnTime = Date.now()
+          console.log('spawn!')
+          console.log(enemyGen.next().value)
+        } else {
+
+        }
+      }
+
+      function* enemyPositionGenerator(enemyCount) {
+        const spawnPositions = ["top", "right", "bottom", "left"];
+
+        while (true) {
+          const posIdx = Math.floor(Math.random() * 4);
+          const spawnPos = spawnPositions[posIdx];
+          yield spawnPos;
+        }
+
+        return null;
       }
     </script>
   </body>
