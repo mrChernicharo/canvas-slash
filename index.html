@@ -16,7 +16,7 @@
       let mouseX = 0;
       let mouseY = 0;
 
-      const playerRadius = 20;
+      const playerRadius = 15;
       let playerAngle = 0;
       let lastAttackTime = Date.now();
       const attackCooldown = 200;
@@ -24,10 +24,10 @@
       let slashGen = slashGenerator(gameStartTimestamp);
 
       let spawnedCount = 0;
-      const enemyCooldown = 1000;
+      const enemyCooldown = 3000;
       const enemyCount = 50;
-      const enemyGen = enemyPositionGenerator(enemyCount);
-      let lastEnemySpawnTime = Date.now()
+      let lastEnemySpawnTime = Date.now();
+      const enemiesMap = new Map();
 
       setupEventListeners();
 
@@ -40,6 +40,8 @@
         playerAngle = calculatePlayerAngle();
         drawPlayer(playerAngle);
         handlePlayerAttacks();
+        updateEnemies();
+        drawEnemies();
         handleSpawnEnemies();
 
         setTimeout(main, 1000 / fps);
@@ -51,7 +53,7 @@
           mouseY = e.offsetY;
         });
 
-        window.addEventListener("click", (e) => {
+        window.addEventListener("mousedown", (e) => {
           if (Date.now() - gameStartTimestamp > attackCooldown && Date.now() - lastAttackTime > attackCooldown) {
             lastAttackTime = Date.now();
             console.log("attack", lastAttackTime);
@@ -132,7 +134,7 @@
       }
 
       function* slashGenerator(slashTimestamp, angle) {
-        const slashOverflow = 0.2;
+        const slashOverflow = 0.1;
         const slashIsOngoing = Date.now() - slashTimestamp <= attackCooldown;
 
         while (slashIsOngoing) {
@@ -143,7 +145,7 @@
       }
 
       function drawSlash() {
-        const slashRadius = playerRadius * 2;
+        const slashRadius = playerRadius * 2.5;
         const [slashPercentage, angle] = slashGen.next().value;
         const startAngle = Math.PI + angle;
         const targetAngle = Math.PI * 2 + angle;
@@ -153,7 +155,7 @@
         ctx.beginPath();
         ctx.arc(canvas.width / 2, canvas.height / 2, slashRadius, startAngle, endAngle);
         ctx.strokeStyle = "#fff";
-        ctx.lineWidth = 10;
+        ctx.lineWidth = 12;
         ctx.stroke();
         ctx.closePath();
 
@@ -161,27 +163,127 @@
       }
 
       function handleSpawnEnemies() {
-        const isTimeToSpawn = Date.now() - lastEnemySpawnTime > enemyCooldown
+        const isTimeToSpawn = Date.now() - lastEnemySpawnTime > enemyCooldown;
 
         if (isTimeToSpawn) {
-          lastEnemySpawnTime = Date.now()
-          console.log('spawn!')
-          console.log(enemyGen.next().value)
-        } else {
-
+          lastEnemySpawnTime = Date.now();
+          const enemyPos = generateEnemyPosition();
+          const [x, y, side] = enemyPos;
+          const speed = randRange(1, 4);
+          const colorIdx = randRange(0, 3);
+          const size = randRange(4, 12);
+          const color = ["lightblue", "lightgreen", "lightcoral", "pink"][colorIdx];
+          const id = idMaker();
+          const enemy = { id, color, size, speed, pos: { x, y }, side };
+          // console.log({ ...enemy, enemiesMap });
+          enemiesMap.set(id, enemy);
         }
       }
 
-      function* enemyPositionGenerator(enemyCount) {
-        const spawnPositions = ["top", "right", "bottom", "left"];
+      function updateEnemies() {
+        for ([i, enemy] of enemiesMap.entries()) {
+          const { id, pos, size, side } = enemy;
+          const { x, y } = pos;
 
-        while (true) {
-          const posIdx = Math.floor(Math.random() * 4);
-          const spawnPos = spawnPositions[posIdx];
-          yield spawnPos;
+          let collidedWithPlayer = false;
+          switch (side) {
+            case "left":
+              collidedWithPlayer = x >= canvas.width / 2 - playerRadius - size;
+              break;
+            case "right":
+              collidedWithPlayer = x <= canvas.width / 2 + playerRadius + size;
+              break;
+            case "top":
+              collidedWithPlayer = y >= canvas.height / 2 - playerRadius - size;
+              break;
+            case "bottom":
+              collidedWithPlayer = y <= canvas.height / 2 + playerRadius + size;
+              break;
+          }
+
+          const [nextX, nextY] = getNextEnemyPos(id, x, y, side);
+
+          if (collidedWithPlayer) {
+            console.log("hit!");
+            enemiesMap.delete(id);
+          } else {
+            enemiesMap.set(id, { ...enemy, pos: { x: nextX, y: nextY } });
+          }
+        }
+      }
+
+      function getNextEnemyPos(id, x, y, side) {
+        const [px, py] = [canvas.width / 2, canvas.height / 2];
+        const dx = px - x;
+        const dy = py - y;
+        const theta = Math.atan2(dy, dx);
+
+        const velX = Math.cos(theta) * enemy.speed;
+        const velY = Math.sin(theta) * enemy.speed;
+
+        const nextX = x + velX;
+        const nextY = y + velY;
+
+        return [nextX, nextY];
+      }
+
+      function drawEnemies() {
+        for ([i, enemy] of enemiesMap.entries()) {
+          const { id, pos, size, speed, color } = enemy;
+          const { x, y } = pos;
+
+          ctx.beginPath();
+          ctx.arc(x, y, size, 0, Math.PI * 2);
+          ctx.fillStyle = color;
+          ctx.fill();
+          ctx.closePath();
+        }
+      }
+
+      function generateEnemyPosition() {
+        const spawnPositions = ["top", "right", "bottom", "left"];
+        const posIdx = Math.floor(Math.random() * spawnPositions.length);
+        const spawnPos = spawnPositions[posIdx];
+        let x = 0;
+        y = 0;
+
+        switch (spawnPos) {
+          case "top": {
+            x = randRange(0, canvas.width);
+            y = 0;
+            break;
+          }
+          case "right": {
+            y = randRange(0, canvas.height);
+            x = canvas.width;
+            break;
+          }
+          case "bottom": {
+            x = randRange(0, canvas.width);
+            y = canvas.height;
+            break;
+          }
+          case "left": {
+            y = randRange(0, canvas.height);
+            x = 0;
+            break;
+          }
         }
 
-        return null;
+        return [x, y, spawnPos];
+      }
+
+      function randRange(min, max) {
+        // min and max included
+        return Math.floor(Math.random() * (max - min + 1) + min);
+      }
+
+      const ID_CHARS = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_";
+      function idMaker(length = 12) {
+        return Array(length)
+          .fill(0)
+          .map((item) => ID_CHARS.split("")[Math.round(Math.random() * ID_CHARS.length)])
+          .join("");
       }
     </script>
   </body>
