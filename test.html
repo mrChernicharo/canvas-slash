@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Canvas Test</title>
+  </head>
+  <body style="background: #333; margin: 0">
+    <canvas id="canvas" width="600" height="600" style="border: 1px solid #fff"></canvas>
+    <div><a style="color: yellow" href="index.html">Home</a></div>
+    <p>In path: <code id="result">false</code></p>
+
+    <input id="x" name="x" type="range" min="0" max="600" value="65" />
+    <input id="y" name="y" type="range" min="0" max="600" value="135" />
+    <script>
+      const canvas = document.getElementById("canvas");
+      const ctx = canvas.getContext("2d");
+      const result = document.getElementById("result");
+      const xInput = document.getElementById("x");
+      const yInput = document.getElementById("y");
+      let x = 65;
+      let y = 135;
+
+      xInput.addEventListener("input", (e) => {
+        x = e.target.value;
+        draw();
+      });
+
+      yInput.addEventListener("input", (e) => {
+        y = e.target.value;
+        draw();
+      });
+
+      draw();
+
+      function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.beginPath();
+        ctx.fillStyle = "green";
+        ctx.arc(100, 100, 50, 0, Math.PI);
+        ctx.fill();
+        ctx.closePath();
+
+        const inPath = ctx.isPointInPath(x, y);
+
+        ctx.beginPath();
+        ctx.fillStyle = "red";
+        ctx.arc(x, y, 5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.closePath();
+
+        result.textContent = inPath;
+      }
+    </script>
+  </body>
+</html>

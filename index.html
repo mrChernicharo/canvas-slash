@@ -6,7 +6,9 @@
     <title>Canvas Slash</title>
   </head>
   <body style="background: #333; margin: 0">
+    
     <canvas id="canvas" width="600" height="600" style="border: 1px solid #fff; margin: 0 auto"></canvas>
+    <div><a style="color: yellow;" href="test.html">Test</a></div>
 
     <script>
       const fps = 60;
@@ -24,7 +26,7 @@
       let slashGen = slashGenerator(gameStartTimestamp);
 
       let spawnedCount = 0;
-      const enemyCooldown = 3000;
+      const enemyCooldown = 1000;
       const enemyCount = 50;
       let lastEnemySpawnTime = Date.now();
       const enemiesMap = new Map();
