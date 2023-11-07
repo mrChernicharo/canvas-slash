@@ -26,8 +26,18 @@ function playSound(filepath, volume = 1) {
 //******* UI ******** //
 
 function drawUI() {
-  livesUI.textContent = lives;
-  killCountUI.textContent = kills;
+  if (killCountUI.textContent != kills) {
+    killCountUI.textContent = kills;
+  }
+
+  if (livesUI.childElementCount !== lives) {
+    livesUI.innerHTML = "";
+    for (let i = 0; i < lives; i++) {
+      const span = document.createElement("span");
+      span.textContent = "*";
+      livesUI.append(span);
+    }
+  }
 }
 
 //******* enemies ******** //

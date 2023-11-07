@@ -4,14 +4,26 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Canvas Slash</title>
+    <style>
+      @font-face {
+        font-family: myFont;
+        src: url(assets/fonts/PixelEmulator.otf);
+      }
+      body {
+        font-family: "myFont";
+      }
+    </style>
   </head>
   <body style="background: #333; color: #fff; margin: 0">
     <canvas id="canvas" width="600" height="600" style="border: 1px solid #fff; margin: 0 auto"></canvas>
+
+    <div>Kills <span id="kills">0</span></div>
+    <div>
+      Lives <span id="lives"> <span>*</span><span>*</span><span>*</span> </span>
+    </div>
+
     <div><a style="color: yellow" href="test.html">Test</a></div>
     <div><a style="color: yellow" href="test2.html">Test 2</a></div>
-
-    <div>Kills <span id="kills"></span></div>
-    <div>Lives <span id="lives"></span></div>
 
     <script src="main.js"></script>
   </body>
