@@ -6,9 +6,9 @@
     <title>Canvas Slash</title>
   </head>
   <body style="background: #333; margin: 0">
-    
     <canvas id="canvas" width="600" height="600" style="border: 1px solid #fff; margin: 0 auto"></canvas>
-    <div><a style="color: yellow;" href="test.html">Test</a></div>
+    <div><a style="color: yellow" href="test.html">Test</a></div>
+    <div><a style="color: yellow" href="test2.html">Test 2</a></div>
 
     <script>
       const fps = 60;
@@ -147,7 +147,8 @@
       }
 
       function drawSlash() {
-        const slashRadius = playerRadius * 2.5;
+        const slashRadius = playerRadius * 4.5;
+        const slashWidth = 32;
         const [slashPercentage, angle] = slashGen.next().value;
         const startAngle = Math.PI + angle;
         const targetAngle = Math.PI * 2 + angle;
@@ -157,9 +158,20 @@
         ctx.beginPath();
         ctx.arc(canvas.width / 2, canvas.height / 2, slashRadius, startAngle, endAngle);
         ctx.strokeStyle = "#fff";
-        ctx.lineWidth = 12;
+        ctx.lineWidth = slashWidth;
         ctx.stroke();
         ctx.closePath();
+
+        // console.log(enemiesMap.entries());
+        // check enemy collision
+        for (const enemy of enemiesMap.values()) {
+          const { id, pos, size } = enemy;
+          const { x, y } = pos;
+          const enemyIntersectedBySlash = ctx.isPointInStroke(x, y);
+          if (enemyIntersectedBySlash) {
+            enemy.slashed = true;
+          }
+        }
 
         ctx.lineWidth = 1;
       }
@@ -171,21 +183,26 @@
           lastEnemySpawnTime = Date.now();
           const enemyPos = generateEnemyPosition();
           const [x, y, side] = enemyPos;
-          const speed = randRange(1, 4);
-          const colorIdx = randRange(0, 3);
-          const size = randRange(4, 12);
+          const speed = randRangeIntFloat(0.5, 2);
+          const colorIdx = randRangeInt(0, 3);
+          const size = randRangeInt(4, 12);
           const color = ["lightblue", "lightgreen", "lightcoral", "pink"][colorIdx];
           const id = idMaker();
           const enemy = { id, color, size, speed, pos: { x, y }, side };
-          // console.log({ ...enemy, enemiesMap });
           enemiesMap.set(id, enemy);
         }
       }
 
       function updateEnemies() {
         for ([i, enemy] of enemiesMap.entries()) {
-          const { id, pos, size, side } = enemy;
-          const { x, y } = pos;
+          const { id, size, side, slashed = false } = enemy;
+          const { x, y } = enemy.pos;
+
+          if (slashed) {
+            console.log(`enemy ${id} slashed!`);
+            enemiesMap.delete(id);
+            continue;
+          }
 
           let collidedWithPlayer = false;
           switch (side) {
@@ -206,7 +223,7 @@
           const [nextX, nextY] = getNextEnemyPos(id, x, y, side);
 
           if (collidedWithPlayer) {
-            console.log("hit!");
+            console.log("hit player!");
             enemiesMap.delete(id);
           } else {
             enemiesMap.set(id, { ...enemy, pos: { x: nextX, y: nextY } });
@@ -251,22 +268,22 @@
 
         switch (spawnPos) {
           case "top": {
-            x = randRange(0, canvas.width);
+            x = randRangeInt(0, canvas.width);
             y = 0;
             break;
           }
           case "right": {
-            y = randRange(0, canvas.height);
+            y = randRangeInt(0, canvas.height);
             x = canvas.width;
             break;
           }
           case "bottom": {
-            x = randRange(0, canvas.width);
+            x = randRangeInt(0, canvas.width);
             y = canvas.height;
             break;
           }
           case "left": {
-            y = randRange(0, canvas.height);
+            y = randRangeInt(0, canvas.height);
             x = 0;
             break;
           }
@@ -275,10 +292,16 @@
         return [x, y, spawnPos];
       }
 
-      function randRange(min, max) {
+      function randRangeInt(min, max) {
         // min and max included
         return Math.floor(Math.random() * (max - min + 1) + min);
       }
+
+
+      function randRangeIntFloat(min, max) {
+        return Math.random() * (max - min) + min;
+      }
+
 
       const ID_CHARS = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_";
       function idMaker(length = 12) {

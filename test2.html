@@ -8,7 +8,7 @@
   <body style="background: #333; margin: 0">
     <canvas id="canvas" width="600" height="600" style="border: 1px solid #fff"></canvas>
     <div><a style="color: yellow" href="index.html">Home</a></div>
-    <div><a style="color: yellow" href="test2.html">Test 2</a></div>
+    <div><a style="color: yellow" href="test.html">Test</a></div>
     <p>In path: <code id="result">false</code></p>
 
     <input id="x" name="x" type="range" min="0" max="600" value="65" />
@@ -37,9 +37,21 @@
       function draw() {
         const cx = 100;
         const cy = 100;
-        const slashRadius = 100;
+        const slashRadius = 60;
         const slashAngleStart = Math.PI * 1.2;
         const slashAngleEnd = Math.PI * 0.5;
+
+        // // slash arc
+        // ctx.clearRect(0, 0, canvas.width, canvas.height);
+        // ctx.beginPath();
+        // ctx.fillStyle = "yellow";
+        // ctx.lineWidth = 20;
+        // ctx.arc(cx, cy, slashRadius, slashAngleStart, slashAngleEnd);
+        // ctx.fill();
+        // ctx.closePath();
+
+        // const insideArc = ctx.isPointInPath(x, y); // this isPointInPath() will save the day!
+
 
         // slash arc
         ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -47,25 +59,12 @@
         ctx.fillStyle = "yellow";
         ctx.lineWidth = 20;
         ctx.arc(cx, cy, slashRadius, slashAngleStart, slashAngleEnd);
-        ctx.fill();
+        ctx.stroke();
         ctx.closePath();
 
-        const insideArc = ctx.isPointInPath(x, y); // this isPointInPath() will save the day!
+        const insideArc = ctx.isPointInStroke(x, y); // this isPointInPath() will save the day!
 
-        const angleLargerThanPI = slashAngleEnd - slashAngleStart > Math.PI;
-        // inner slash triangle
-        const arcStartPos = getArcPoint(cx, cy, slashAngleStart, slashRadius);
-        const arcEndPos = getArcPoint(cx, cy, slashAngleEnd, slashRadius);
-        ctx.beginPath();
-        ctx.moveTo(cx, cy);
-        ctx.lineTo(arcStartPos[0], arcStartPos[1]);
-        ctx.lineTo(arcEndPos[0], arcEndPos[1]);
-        ctx.lineTo(cx, cy);
-        ctx.fillStyle = "orange";
-        ctx.fill();
-        ctx.closePath();
 
-        const insideTriangle = ctx.isPointInPath(x, y); // this isPointInPath() will save the day!
 
         ctx.beginPath();
         ctx.fillStyle = "red";
@@ -82,13 +81,9 @@
 
         console.log({
           insideArc,
-          insideTriangle,
-          arcEndPos,
-          arcStartPos,
-          angleLargerThanPI
         });
 
-        result.textContent = insideArc || insideTriangle;
+        result.textContent = insideArc;
       }
 
       function getArcPoint(circle_center_x, circle_center_y, r_angle, r_length) {
