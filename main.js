@@ -120,7 +120,7 @@ function updateEnemies() {
       enemiesMap.delete(id);
       kills++;
 
-      playSound("./assets/sounds/blade-hit-02.wav");
+      playSound("./assets/sounds/blade-hit-02.wav", 0.6);
       continue;
     }
 
@@ -180,8 +180,10 @@ function drawSlash() {
   ctx.lineWidth = slashWidth;
   ctx.stroke();
   ctx.closePath();
+}
 
-  /* check enemy collision */
+/** check enemy collision - must be called immediately after drawSlash so we get slash shape functionality via ctx, like ctx.isPointInStroke */
+function checkSlashCollision() {
   for (const enemy of enemiesMap.values()) {
     const { id, pos, size } = enemy;
     const { x, y } = pos;
@@ -190,7 +192,7 @@ function drawSlash() {
       enemy.slashed = true;
     }
   }
-
+  // return lineWidth to its original setting
   ctx.lineWidth = 1;
 }
 
@@ -213,6 +215,7 @@ function handlePlayerAttacks() {
   const isAttacking = Date.now() - gameStartTimestamp > attackCooldown && Date.now() - lastAttackTime < attackCooldown;
   if (isAttacking) {
     drawSlash();
+    checkSlashCollision();
   } else {
     slashGen = slashGenerator(Date.now(), playerAngle);
   }
