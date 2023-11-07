@@ -5,15 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Canvas Slash</title>
   </head>
-  <body style="background: #333; margin: 0">
+  <body style="background: #333; color:#fff; margin: 0">
     <canvas id="canvas" width="600" height="600" style="border: 1px solid #fff; margin: 0 auto"></canvas>
     <div><a style="color: yellow" href="test.html">Test</a></div>
     <div><a style="color: yellow" href="test2.html">Test 2</a></div>
+
+    <div>Kills <span id="kills"></span></div>
+    <div>Lives <span id="lives"></span></div>
 
     <script>
       const fps = 60;
       const canvas = document.querySelector("#canvas");
       const ctx = canvas.getContext("2d");
+      const livesUI = document.querySelector("#lives");
+      const killCountUI = document.querySelector("#kills");
 
       let mouseX = 0;
       let mouseY = 0;
@@ -26,13 +31,17 @@
       let slashGen = slashGenerator(gameStartTimestamp);
 
       let spawnedCount = 0;
-      const enemyCooldown = 1000;
+      const enemyCooldown = 1200;
       const enemyCount = 50;
       let lastEnemySpawnTime = Date.now();
       const enemiesMap = new Map();
 
-      setupEventListeners();
+      let lives = 3;
+      let kills = 0;
+      let invincible = false;
+      const invincibilityTimeout = 3000;
 
+      setupEventListeners();
       main();
 
       function main() {
@@ -45,8 +54,15 @@
         updateEnemies();
         drawEnemies();
         handleSpawnEnemies();
+        drawUI();
 
-        setTimeout(main, 1000 / fps);
+        requestAnimationFrame(main)
+        // setTimeout(main, 1000 / fps);
+      }
+
+      function drawUI() {
+        livesUI.textContent = lives;
+        killCountUI.textContent = kills;
       }
 
       function setupEventListeners() {
@@ -58,7 +74,6 @@
         window.addEventListener("mousedown", (e) => {
           if (Date.now() - gameStartTimestamp > attackCooldown && Date.now() - lastAttackTime > attackCooldown) {
             lastAttackTime = Date.now();
-            console.log("attack", lastAttackTime);
           }
         });
       }
@@ -99,7 +114,7 @@
 
         ctx.beginPath();
         ctx.arc(0, 0, playerRadius, 0, Math.PI * 2);
-        ctx.strokeStyle = "#fff";
+        ctx.strokeStyle = invincible ? "rgba(225,225,225,0.2)" : "#fff";
         ctx.stroke();
         ctx.closePath();
 
@@ -201,6 +216,7 @@
           if (slashed) {
             console.log(`enemy ${id} slashed!`);
             enemiesMap.delete(id);
+            kills++;
             continue;
           }
 
@@ -223,7 +239,8 @@
           const [nextX, nextY] = getNextEnemyPos(id, x, y, side);
 
           if (collidedWithPlayer) {
-            console.log("hit player!");
+            console.log("player hit!");
+            onPlayerHit();
             enemiesMap.delete(id);
           } else {
             enemiesMap.set(id, { ...enemy, pos: { x: nextX, y: nextY } });
@@ -257,6 +274,18 @@
           ctx.fill();
           ctx.closePath();
         }
+      }
+
+      function onPlayerHit() {
+        if (invincible) return;
+
+        console.log("OOOOOOOOOOOUCH!!!");
+        lives--;
+        invincible = true;
+
+        setTimeout(() => {
+          invincible = false;
+        }, invincibilityTimeout);
       }
 
       function generateEnemyPosition() {
@@ -297,11 +326,9 @@
         return Math.floor(Math.random() * (max - min + 1) + min);
       }
 
-
       function randRangeIntFloat(min, max) {
         return Math.random() * (max - min) + min;
       }
-
 
       const ID_CHARS = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_";
       function idMaker(length = 12) {
