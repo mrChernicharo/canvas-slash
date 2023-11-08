@@ -17,9 +17,12 @@
   <body style="background: #333; color: #fff; margin: 0">
     <canvas id="canvas" width="600" height="600" style="border: 1px solid #fff; margin: 0 auto"></canvas>
 
-    <div>Kills <span id="kills">0</span></div>
-    <div>
-      Lives <span id="lives"> <span>*</span><span>*</span><span>*</span> </span>
+    <div style="display: flex; width: 600px; justify-content: space-between">
+      <div>☠️&nbsp;<span id="kills">0</span></div>
+      <div style="display: flex;"">
+        <span>LV <span id="level">1</span></span>
+        <div id="lives" style="width: 60px; text-align: right;"> <span>❤️</span><span>❤️</span><span>❤️</span> </div>
+      </div>
     </div>
 
     <div><a style="color: yellow" href="test.html">Test</a></div>

@@ -30,11 +30,15 @@ function drawUI() {
     killCountUI.textContent = kills;
   }
 
+  if (levelUI.textContent != level) {
+    levelUI.textContent = level;
+  }
+
   if (livesUI.childElementCount !== lives) {
     livesUI.innerHTML = "";
     for (let i = 0; i < lives; i++) {
       const span = document.createElement("span");
-      span.textContent = "*";
+      span.textContent = "❤️";
       livesUI.append(span);
     }
   }
@@ -76,7 +80,7 @@ function generateEnemyPosition() {
 }
 
 function handleSpawnEnemies() {
-  const isTimeToSpawn = Date.now() - lastEnemySpawnTime > enemyCooldown;
+  const isTimeToSpawn = Date.now() - lastEnemySpawnTime > getEnemyCooldown();
 
   if (isTimeToSpawn) {
     lastEnemySpawnTime = Date.now();
@@ -84,7 +88,7 @@ function handleSpawnEnemies() {
     const [x, y, side] = enemyPos;
     const speed = randRangeIntFloat(0.5, 2);
     const colorIdx = randRangeInt(0, 3);
-    const size = randRangeInt(4, 12);
+    const size = randRangeInt(5, 15);
     const color = ["lightblue", "lightgreen", "lightcoral", "pink"][colorIdx];
     const id = idMaker();
     const enemy = { id, color, size, speed, pos: { x, y }, side };
@@ -131,6 +135,8 @@ function updateEnemies() {
       kills++;
 
       playSound("./assets/sounds/blade-hit-02.wav", 0.6);
+
+      handleLevelUp();
       continue;
     }
 
@@ -162,6 +168,11 @@ function updateEnemies() {
   }
 }
 
+function getEnemyCooldown() {
+  const currentCooldown = initialEnemyCooldown - level * 50;
+  return currentCooldown;
+}
+
 //******* sword slash ******** //
 
 function* slashGenerator(slashTimestamp, angle) {
@@ -176,8 +187,14 @@ function* slashGenerator(slashTimestamp, angle) {
 }
 
 function drawSlash() {
-  const slashRadius = playerRadius * 4.5;
-  const slashWidth = 32;
+  // const slashRadius = playerRadius * 4.5;
+  // const slashWidth = 32;
+  // const slashRadius = 41 + level;
+  // const slashWidth = 19 + level;
+  const slashRadius = 41 + level * 1.4;
+  const slashWidth = 19 + level * 1.25;
+  // console.log({ slashRadius, slashWidth });
+
   const [slashPercentage, angle] = slashGen.next().value;
   const startAngle = Math.PI + angle;
   const targetAngle = Math.PI * 2 + angle;
@@ -188,8 +205,6 @@ function drawSlash() {
   ctx.arc(canvas.width / 2, canvas.height / 2, slashRadius, startAngle, endAngle);
   ctx.strokeStyle = "#fff";
   ctx.lineWidth = slashWidth;
-  ctx.stroke();
-  ctx.closePath();
 }
 
 /** check enemy collision - must be called immediately after drawSlash so we get slash shape functionality via ctx, like ctx.isPointInStroke */
@@ -202,7 +217,8 @@ function checkSlashCollision() {
       enemy.slashed = true;
     }
   }
-  // return lineWidth to its original setting
+  ctx.stroke();
+  ctx.closePath();
   ctx.lineWidth = 1;
 }
 
@@ -261,6 +277,15 @@ function calculatePlayerAngle() {
   const theta = Math.atan2(dy, dx) + Math.PI * 0.5; /* range (-PI, PI] */
 
   return theta;
+}
+
+function handleLevelUp() {
+  const hasLeveledUp = Math.trunc(Math.sqrt(kills)) > level;
+  if (!hasLeveledUp) return;
+
+  console.log("level up!");
+  playSound("assets/sounds/level-up.mp3", 1);
+  level++;
 }
 
 //******* mouse ******** //
@@ -336,17 +361,18 @@ function main() {
 const canvas = document.querySelector("#canvas");
 const ctx = canvas.getContext("2d");
 const livesUI = document.querySelector("#lives");
+const levelUI = document.querySelector("#level");
 const killCountUI = document.querySelector("#kills");
 
 let mouseX = 0;
 let mouseY = 0;
+const gameStartTimestamp = Date.now();
 
 let lives = 3;
 let kills = 0;
+let level = 1;
 let invincible = false;
 const invincibilityTimeout = 3000;
-
-const gameStartTimestamp = Date.now();
 
 const playerRadius = 15;
 let playerAngle = 0;
@@ -354,9 +380,7 @@ let lastAttackTime = Date.now();
 const attackCooldown = 200;
 let slashGen = slashGenerator(gameStartTimestamp);
 
-let spawnedCount = 0;
-const enemyCooldown = 1200;
-const enemyCount = 50;
+const initialEnemyCooldown = 1250;
 let lastEnemySpawnTime = Date.now();
 const enemiesMap = new Map();
 
