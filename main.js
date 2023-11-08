@@ -191,6 +191,7 @@ function drawSlash() {
   // const slashWidth = 32;
   // const slashRadius = 41 + level;
   // const slashWidth = 19 + level;
+
   const slashRadius = 41 + level * 1.4;
   const slashWidth = 19 + level * 1.25;
   // console.log({ slashRadius, slashWidth });
@@ -205,6 +206,8 @@ function drawSlash() {
   ctx.arc(canvas.width / 2, canvas.height / 2, slashRadius, startAngle, endAngle);
   ctx.strokeStyle = "#fff";
   ctx.lineWidth = slashWidth;
+  ctx.stroke();
+  ctx.closePath();
 }
 
 /** check enemy collision - must be called immediately after drawSlash so we get slash shape functionality via ctx, like ctx.isPointInStroke */
@@ -217,8 +220,7 @@ function checkSlashCollision() {
       enemy.slashed = true;
     }
   }
-  ctx.stroke();
-  ctx.closePath();
+  
   ctx.lineWidth = 1;
 }
 
@@ -324,6 +326,34 @@ function drawWorldLines() {
 
 //******* game ******** //
 
+function resetGame() {
+  mouseX = 0;
+  mouseY = 0;
+  gameStartTimestamp = Date.now();
+
+  lives = 1;
+  kills = 0;
+  level = 1;
+  invincible = false;
+
+  playerAngle = 0;
+  lastAttackTime = Date.now();
+  slashGen = slashGenerator(gameStartTimestamp);
+
+  lastEnemySpawnTime = Date.now();
+
+  enemiesMap.clear();
+  gameOverUI.classList.remove("shown");
+
+  runGameLoop();
+}
+
+function onGameOver() {
+  console.log("onGameOver!!!");
+  cancelAnimationFrame(frameID);
+  gameOverUI.classList.add("shown");
+}
+
 function runGameLoop() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   drawWorldLines();
@@ -336,7 +366,11 @@ function runGameLoop() {
   handleSpawnEnemies();
   drawUI();
 
-  requestAnimationFrame(runGameLoop);
+  if (lives <= 0) {
+    onGameOver();
+  } else {
+    frameID = requestAnimationFrame(runGameLoop);
+  }
 }
 
 function setupEventListeners() {
@@ -351,6 +385,9 @@ function setupEventListeners() {
       playSound("./assets/sounds/fast-woosh-02.wav", 0.5);
     }
   });
+  restartBtn.addEventListener("click", (e) => {
+    resetGame();
+  });
 }
 
 function main() {
@@ -363,12 +400,15 @@ const ctx = canvas.getContext("2d");
 const livesUI = document.querySelector("#lives");
 const levelUI = document.querySelector("#level");
 const killCountUI = document.querySelector("#kills");
+const gameOverUI = document.querySelector("#game-over-pane");
+const restartBtn = document.querySelector("#restart-btn");
 
 let mouseX = 0;
 let mouseY = 0;
-const gameStartTimestamp = Date.now();
+let frameID = -1;
+let gameStartTimestamp = Date.now();
 
-let lives = 3;
+let lives = 1;
 let kills = 0;
 let level = 1;
 let invincible = false;

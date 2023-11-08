@@ -12,6 +12,24 @@
       body {
         font-family: "myFont";
       }
+      #game-over-pane {
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,100, 0.4);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        opacity: 0;
+        transition: opacity 1s;
+      }
+      #game-over-pane > h1 {
+        pointer-events: none;
+      }
+      #game-over-pane.shown {
+        opacity: 1;
+      }
+
     </style>
   </head>
   <body style="background: #333; color: #fff; margin: 0">
@@ -27,6 +45,12 @@
 
     <div><a style="color: yellow" href="test.html">Test</a></div>
     <div><a style="color: yellow" href="test2.html">Test 2</a></div>
+
+
+    <div id="game-over-pane">
+      <h1>GAME OVER</h1>
+      <button id="restart-btn">Play again</button>
+    </div>
 
     <script src="main.js"></script>
   </body>
