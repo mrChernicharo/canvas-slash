@@ -18,6 +18,7 @@ function randRangeIntFloat(min, max) {
 }
 
 function playSound(filepath, volume = 1) {
+  if (!soundEnabled) return;
   const audio = new Audio(filepath);
   audio.volume = volume;
   audio.play();
