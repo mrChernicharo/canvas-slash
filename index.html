@@ -12,40 +12,48 @@
       body {
         font-family: "myFont";
       }
+      button,
+      input,
+      label {
+        cursor: pointer;
+        user-select: none;
+      }
       #game-over-pane {
         position: fixed;
         inset: 0;
-        background: rgba(0,0,100, 0.4);
+        background: rgba(0, 0, 100, 0.4);
         display: flex;
         flex-direction: column;
         justify-content: center;
         align-items: center;
         opacity: 0;
         transition: opacity 1s;
+        pointer-events: none;
       }
       #game-over-pane > h1 {
         pointer-events: none;
       }
       #game-over-pane.shown {
         opacity: 1;
+        pointer-events: all;
       }
-
     </style>
   </head>
   <body style="background: #333; color: #fff; margin: 0">
+    <label id="sound" for="sound-checkbox"><span>🔈</span><input id="sound-checkbox" type="checkbox" checked /></label>
+
     <canvas id="canvas" width="600" height="600" style="border: 1px solid #fff; margin: 0 auto"></canvas>
 
     <div style="display: flex; width: 600px; justify-content: space-between">
       <div>☠️&nbsp;<span id="kills">0</span></div>
-      <div style="display: flex;"">
+      <div style="display: flex">
         <span>LV <span id="level">1</span></span>
-        <div id="lives" style="width: 60px; text-align: right;"> <span>❤️</span><span>❤️</span><span>❤️</span> </div>
+        <div id="lives" style="width: 60px; text-align: right"><span>❤️</span><span>❤️</span><span>❤️</span></div>
       </div>
     </div>
 
-    <div><a style="color: yellow" href="test.html">Test</a></div>
-    <div><a style="color: yellow" href="test2.html">Test 2</a></div>
-
+    <!-- <div><a style="color: yellow" href="test.html">Test</a></div> -->
+    <!-- <div><a style="color: yellow" href="test2.html">Test 2</a></div> -->
 
     <div id="game-over-pane">
       <h1>GAME OVER</h1>

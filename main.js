@@ -220,7 +220,7 @@ function checkSlashCollision() {
       enemy.slashed = true;
     }
   }
-  
+
   ctx.lineWidth = 1;
 }
 
@@ -331,9 +331,10 @@ function resetGame() {
   mouseY = 0;
   gameStartTimestamp = Date.now();
 
-  lives = 1;
+  lives = INITIAL_LIVES;
   kills = 0;
   level = 1;
+  gameIsOver = false;
   invincible = false;
 
   playerAngle = 0;
@@ -350,6 +351,7 @@ function resetGame() {
 
 function onGameOver() {
   console.log("onGameOver!!!");
+  gameIsOver = true;
   cancelAnimationFrame(frameID);
   gameOverUI.classList.add("shown");
 }
@@ -373,6 +375,17 @@ function runGameLoop() {
   }
 }
 
+function onToggleSound(e) {
+  soundEnabled = !soundEnabled;
+  if (soundEnabled) {
+    soundToggle.firstChild.textContent = "🔈";
+    // soundToggleInput.setAttribute("checked", true);
+  } else {
+    soundToggle.firstChild.textContent = "🔇";
+    // soundToggleInput.removeAttribute("checked");
+  }
+}
+
 function setupEventListeners() {
   window.addEventListener("mousemove", (e) => {
     mouseX = e.offsetX;
@@ -380,7 +393,13 @@ function setupEventListeners() {
   });
 
   window.addEventListener("mousedown", (e) => {
-    if (Date.now() - gameStartTimestamp > attackCooldown && Date.now() - lastAttackTime > attackCooldown) {
+    if (e.composedPath().includes(soundToggle)) return;
+
+    if (
+      !gameIsOver &&
+      Date.now() - gameStartTimestamp > attackCooldown &&
+      Date.now() - lastAttackTime > attackCooldown
+    ) {
       lastAttackTime = Date.now();
       playSound("./assets/sounds/fast-woosh-02.wav", 0.5);
     }
@@ -388,6 +407,8 @@ function setupEventListeners() {
   restartBtn.addEventListener("click", (e) => {
     resetGame();
   });
+
+  soundToggle.addEventListener("mousedown", onToggleSound);
 }
 
 function main() {
@@ -402,16 +423,22 @@ const levelUI = document.querySelector("#level");
 const killCountUI = document.querySelector("#kills");
 const gameOverUI = document.querySelector("#game-over-pane");
 const restartBtn = document.querySelector("#restart-btn");
+const soundToggle = document.querySelector("#sound");
+const soundToggleInput = document.querySelector("#sound-checkbox");
+// const soundToggleLabel = document.querySelector("#sound-label");
 
 let mouseX = 0;
 let mouseY = 0;
 let frameID = -1;
 let gameStartTimestamp = Date.now();
+let soundEnabled = true;
 
-let lives = 1;
+const INITIAL_LIVES = 10;
+let lives = INITIAL_LIVES;
 let kills = 0;
 let level = 1;
 let invincible = false;
+let gameIsOver = false;
 const invincibilityTimeout = 3000;
 
 const playerRadius = 15;
